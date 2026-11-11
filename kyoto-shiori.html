@@ -102,6 +102,22 @@ main{max-width:640px;margin:0 auto;padding:28px 20px 64px}
 .check input:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
 .check input:checked + span{color:var(--muted);text-decoration:line-through}
 .check input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.ph{position:relative;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--ai-2),var(--ai));margin:2px 0 10px}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s ease}
+.ph img.on{opacity:1}
+.ph .ph-fallback{position:absolute;inset:0;display:grid;place-items:center;font-size:44px;opacity:.5}
+.ph .credit{position:absolute;right:6px;bottom:4px;font-size:10px;color:#fff;opacity:.75;text-shadow:0 1px 2px #000;max-width:80%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.star .card{padding:0;overflow:hidden}
+.star .card .ph{margin:0;border-radius:0;aspect-ratio:4/3}
+.star .card .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(14,20,38,.92) 0%,rgba(14,20,38,.25) 55%,transparent 80%);pointer-events:none}
+.star .card .over{position:absolute;left:16px;right:16px;bottom:14px;z-index:2;color:#F3ECDD}
+.star .card .over h3{font-family:var(--mincho);font-size:26px;font-weight:800;line-height:1.3;margin:0}
+.star .card .over p{color:#E3DBC8;margin:2px 0 0;font-size:14px}
+.star .card .credit{top:6px;bottom:auto;z-index:3}
+.star .card .foot{padding:10px 16px 14px}
+.credits{font-size:11px;color:var(--muted);line-height:1.6;margin-top:24px}
+.credits a{color:var(--muted)}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:24px 20px 40px;font-family:var(--mincho)}
 @media (min-width:720px){.hero{padding:64px 64px 48px}.hanko{left:64px;top:64px}}
 @media (prefers-reduced-motion:reduce){.hero canvas{display:none}}
@@ -157,6 +173,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:24px 20px 40p
       <h2>やることリスト</h2>
       <ul class="check" id="check"></ul>
     </div>
+    <p class="credits" id="credits"></p>
   </section>
 </main>
 
@@ -166,40 +183,95 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:24px 20px 40p
 const M = q => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
 const days = {
   day1: [
-    {t:"8:00", n:"新横浜からのぞみに乗車", k:"move"},
-    {t:"10:00", n:"京都駅に到着", d:"JR嵯峨野線で二条駅へ（約10分）", k:"move"},
-    {t:"10:20", n:"ホテルに荷物を預ける", d:"二条駅から徒歩2分", q:"ザ ロイヤルパーク キャンバス 京都二条"},
-    {t:"10:40", n:"二条城", d:"ホテルから歩いて行ける。庭園もゆっくり。", q:"二条城"},
-    {t:"11:45", n:"地下鉄で京都市役所前へ", d:"錦市場をちょっとだけ散策", k:"move"},
-    {t:"12:25", n:"指輪づくり", d:"アカネス 京都本店。約1時間、その日に持って帰れる。", q:"アカネス 京都本店", k:"star", tag:"今日のメイン"},
-    {t:"13:40", n:"ランチ", d:"omo cafe か KASUMI", q:"omo cafe 京都"},
-    {t:"14:45", n:"阪急で嵐山へ", d:"桂で乗り換え、約25分", k:"move"},
-    {t:"15:15", n:"渡月橋・竹林の小径・天龍寺", d:"明るいうちに竹林と庭園を", q:"渡月橋"},
-    {t:"17:30", n:"宝厳院 ライトアップ", d:"秋の夜間特別拝観、この日が初日。", q:"宝厳院", k:"star", tag:"夜の紅葉"},
-    {t:"18:40", n:"阪急で京都河原町へ", k:"move"},
-    {t:"19:15", n:"おばんざいで夕食", d:"おうちごはん 中島家 三条木屋町（要予約）", q:"おうちごはん 中島家 三条木屋町"},
-    {t:"夜", n:"地下鉄東西線で二条へ", d:"京都市役所前から約10分でホテル", k:"move"}
+    {t:"8:00", n:"新横浜 → のぞみ", k:"move"},
+    {t:"10:00", n:"京都駅 → JRで二条へ", k:"move"},
+    {t:"10:20", n:"ホテルに荷物を預ける", k:"move", q:"ザ ロイヤルパーク キャンバス 京都二条"},
+    {t:"10:40", n:"二条城", d:"ホテルから歩いてすぐ", q:"二条城", img:"二条城"},
+    {t:"11:45", n:"錦市場をちょっと散策", q:"錦市場", img:"錦市場"},
+    {t:"12:25", n:"指輪づくり", d:"アカネス 京都本店・約1時間", q:"アカネス 京都本店", k:"star", tag:"今日のメイン", emoji:"💍"},
+    {t:"13:40", n:"ランチ", d:"omo cafe か KASUMI", q:"omo cafe 京都", k:"move"},
+    {t:"14:45", n:"阪急で嵐山へ（約25分）", k:"move"},
+    {t:"15:15", n:"渡月橋・竹林・天龍寺", q:"渡月橋", img:"渡月橋"},
+    {t:"17:30", n:"宝厳院 ライトアップ", d:"夜間特別拝観の初日", q:"宝厳院", k:"star", tag:"夜の紅葉", img:"宝厳院", night:["Hogon-in illumination","Hogonin light up","宝厳院 ライトアップ"]},
+    {t:"19:15", n:"おばんざいで夕食", d:"中島家 三条木屋町（要予約）", q:"おうちごはん 中島家 三条木屋町", emoji:"🍶"},
+    {t:"夜", n:"地下鉄東西線で二条へ", k:"move"}
   ],
   day2: [
-    {t:"7:45", n:"チェックアウト", d:"JRで京都駅へ。荷物はコインロッカーに。", k:"move"},
-    {t:"8:30", n:"三十三間堂", d:"京都駅からタクシー約10分", q:"三十三間堂"},
-    {t:"9:30", n:"清水寺", d:"混む前に舞台へ", q:"清水寺", k:"star", tag:"朝の清水"},
-    {t:"10:45", n:"産寧坂・二年坂・高台寺", d:"石畳を下りながら", q:"二年坂"},
-    {t:"12:00", n:"祇園でランチ", d:"湯葉 東山ゆう豆", q:"湯葉 東山ゆう豆"},
-    {t:"13:15", n:"ぎおん小森", d:"白川沿いのお座敷でわらび餅", q:"ぎをん小森"},
-    {t:"14:15", n:"永観堂", d:"タクシー約15分。受付は16時ごろまで。", q:"永観堂", k:"star", tag:"いちばん赤い紅葉"},
-    {t:"15:30", n:"南禅寺・水路閣", d:"永観堂から歩いて数分", q:"南禅寺 水路閣"},
-    {t:"16:30", n:"蹴上から地下鉄で京都駅へ", d:"荷物を受け取って帰路へ", k:"move"}
+    {t:"7:45", n:"チェックアウト → 京都駅ロッカー", k:"move"},
+    {t:"8:30", n:"三十三間堂", q:"三十三間堂", img:"三十三間堂"},
+    {t:"9:30", n:"清水寺", d:"混む前に舞台へ", q:"清水寺", k:"star", tag:"朝の清水", img:"清水寺"},
+    {t:"10:45", n:"二年坂・高台寺", q:"二年坂", img:"高台寺"},
+    {t:"12:00", n:"湯葉ランチ", d:"東山ゆう豆", q:"湯葉 東山ゆう豆", emoji:"🥢"},
+    {t:"13:15", n:"ぎおん小森でわらび餅", q:"ぎをん小森", img:"白川 (京都市)"},
+    {t:"14:15", n:"永観堂", d:"受付は16時ごろまで", q:"永観堂", k:"star", tag:"いちばん赤い紅葉", img:"禅林寺 (京都市)"},
+    {t:"15:30", n:"南禅寺・水路閣", q:"南禅寺 水路閣", img:"南禅寺"},
+    {t:"16:30", n:"蹴上 → 京都駅 → 帰路", k:"move"}
   ]
 };
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+let uid=0; const jobs=[];
+function ph(s, cls){
+  if(!s.img && !s.emoji) return "";
+  const id="ph"+(uid++);
+  if(s.img) jobs.push({id, s});
+  return `<div class="ph ${cls||""}" id="${id}"><div class="ph-fallback">${s.emoji||"🍁"}</div></div>`;
+}
 for (const key of ["day1","day2"]) {
   document.getElementById("tl-"+key).innerHTML = days[key].map(s=>{
     const map = s.q ? `<a class="map" href="${M(s.q)}" target="_blank" rel="noopener">地図をひらく</a>` : "";
-    const inner = `${s.tag?`<span class="tag">${esc(s.tag)}</span>`:""}<h3>${esc(s.n)}</h3>${s.d?`<p>${esc(s.d)}</p>`:""}${map}`;
-    return `<li class="stop ${s.k||""}"><div class="time">${esc(s.t)}</div><div class="dot"></div><div class="body">${s.k==="star"?`<div class="card">${inner}</div>`:inner}</div></li>`;
+    let body;
+    if (s.k==="star") {
+      body = `<div class="card"><div style="position:relative">${ph(s) || `<div class="ph"><div class="ph-fallback">${s.emoji}</div></div>`}<div class="over">${s.tag?`<span class="tag">${esc(s.tag)}</span>`:""}<h3>${esc(s.n)}</h3>${s.d?`<p>${esc(s.d)}</p>`:""}</div></div><div class="foot">${map}</div></div>`;
+    } else if (s.k==="move") {
+      body = `<h3>${esc(s.n)}</h3>${map}`;
+    } else {
+      body = `${ph(s)}<h3>${esc(s.n)}</h3>${s.d?`<p>${esc(s.d)}</p>`:""}${map}`;
+    }
+    return `<li class="stop ${s.k||""}"><div class="time">${esc(s.t)}</div><div class="dot"></div><div class="body">${body}</div></li>`;
   }).join("");
 }
+
+// ---- free-licensed photos from Wikipedia / Wikimedia Commons ----
+const credits = new Map();
+const txt = h => { const d=document.createElement("div"); d.innerHTML=h||""; return d.textContent.trim(); };
+async function getJSON(u){ const r = await fetch(u); if(!r.ok) throw 0; return r.json(); }
+function pickInfo(page){
+  const ii = page && page.imageinfo && page.imageinfo[0]; if(!ii || !ii.thumburl) return null;
+  if (ii.mime && !/jpe?g|png|webp/.test(ii.mime)) return null;
+  const m = ii.extmetadata||{};
+  return { src: ii.thumburl, page: ii.descriptionurl, artist: txt(m.Artist&&m.Artist.value)||"不明", lic: (m.LicenseShortName&&m.LicenseShortName.value)||"" };
+}
+async function commonsSearch(q){
+  const u="https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=6&gsrsearch="+encodeURIComponent(q)+"&prop=imageinfo&iiprop=url|extmetadata|mime&iiurlwidth=1000";
+  const j = await getJSON(u); if(!j.query) return null;
+  const pages = Object.values(j.query.pages).sort((a,b)=>(a.index||0)-(b.index||0));
+  for (const p of pages){ const i = pickInfo(p); if(i) return i; }
+  return null;
+}
+async function wikiLead(title){
+  const u="https://ja.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=name&titles="+encodeURIComponent(title);
+  const j = await getJSON(u); const p = Object.values(j.query.pages)[0]; if(!p || !p.pageimage) return null;
+  const c = await getJSON("https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=url|extmetadata|mime&iiurlwidth=1000&titles="+encodeURIComponent("File:"+p.pageimage));
+  return pickInfo(Object.values(c.query.pages)[0]);
+}
+async function loadPhoto(job){
+  let info = null;
+  try { for (const q of (job.s.night||[])) { info = await commonsSearch(q); if (info) break; } } catch(e){}
+  if (!info) { try { info = await wikiLead(job.s.img); } catch(e){} }
+  if (!info) return;
+  const box = document.getElementById(job.id); if(!box) return;
+  const img = new Image(); img.alt = job.s.n; img.decoding="async"; img.loading="lazy"; img.referrerPolicy="no-referrer";
+  img.onload = ()=>{ img.classList.add("on"); const f=box.querySelector(".ph-fallback"); if(f) f.remove(); };
+  img.src = info.src; box.prepend(img);
+  const cr = document.createElement("span"); cr.className="credit"; cr.textContent = "© "+info.artist; box.appendChild(cr);
+  credits.set(info.page, `${job.s.n}：<a href="${info.page}" target="_blank" rel="noopener">${esc(info.artist)}</a>${info.lic?"（"+esc(info.lic)+"）":""}`);
+  renderCredits();
+}
+function renderCredits(){
+  const el = document.getElementById("credits"); if(!el) return;
+  el.innerHTML = "写真：Wikimedia Commons<br>" + [...credits.values()].join("<br>");
+}
+jobs.forEach(loadPhoto);
 
 // checklist
 const items = ["中島家の席を予約する","指輪づくりの予約メールを確認","上着（夜の嵐山は冷える）","歩きやすい靴","モバイルバッテリー","交通系ICカードのチャージ"];
